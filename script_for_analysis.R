@@ -120,3 +120,9 @@ stargazer(reg7, type = "text",
               "Years of Experience Squared", "Years of Experience",
               "Rural", "Year", "Tradesperson", "Construction", "Business", "Finance"),
           out = "reg_output_nonlinear.txt")
+
+# Testing of non-linear relationship between Earnings and School and/or Exper
+# Overall regression F-statistic for the quadratic regression
+linearHypothesis(reg7, 
+                 c("schoolquad = 0", "experquad = 0"),
+                 vcov = vcovHC(reg7, "HC1")) #Assuming heteroskedasticity
