@@ -104,3 +104,19 @@ stargazer(reg4,reg5,reg6, type="text",
 coeftest(reg4, vcov = vcovHC(reg4, "HC1")) #Assuming heteroskedasticity
 coeftest(reg5, vcov = vcovHC(reg5, "HC1")) 
 coeftest(reg6, vcov = vcovHC(reg6, "HC1")) 
+
+# Running quadratic regression with controlled variables
+#Quadratic earnings-school and earnings-exper relationship, holding rural, year, and industry dummies fixed
+reg7 = lm(earnings ~ schoolquad + school + experquad + exper + rural + year + trad + con + bus + fin, data = mydata)
+cov7=vcovHC(reg7, type = "HC1")    
+se7=sqrt(diag(cov7))
+
+#Regression output table for reg7, inclusive of standard errors
+stargazer(reg7, type = "text", 
+          se = list(se7), 
+          dep.var.labels = c("Annual Earnings"), 
+          covariate.labels = 
+            c("Years of Schooling Squared", "Years of Schooling",
+              "Years of Experience Squared", "Years of Experience",
+              "Rural", "Year", "Tradesperson", "Construction", "Business", "Finance"),
+          out = "reg_output_nonlinear.txt")
