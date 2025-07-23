@@ -68,3 +68,39 @@ stargazer(reg1,reg2,reg3, type="text",
 coeftest(reg1, vcov = vcovHC(reg1, "HC1")) #Assuming heteroskedasticity
 coeftest(reg2, vcov = vcovHC(reg2, "HC1")) 
 coeftest(reg3, vcov = vcovHC(reg3, "HC1")) 
+
+# Sequential Hypothesis Testing for Earnings-Exper
+# Create non-linear terms for polynomial regression
+mydata$expercubic = mydata$exper * mydata$exper * mydata$exper
+mydata$experquad = mydata$exper * mydata$exper  
+
+# Cubic earnings-exper relationship
+reg4 = lm(earnings ~ expercubic + experquad + exper, data=mydata)
+cov4=vcovHC(reg4, type = "HC1")    
+se4=sqrt(diag(cov4))
+
+# Quadratic earnings-exper relationship
+reg5 = lm(earnings ~ experquad + exper, data=mydata)
+cov5=vcovHC(reg5, type = "HC1")    
+se5=sqrt(diag(cov5))
+
+# Linear earnings-exper relationship
+reg6 = lm(earnings ~ exper, data=mydata)
+cov6=vcovHC(reg6, type = "HC1")    
+se6=sqrt(diag(cov6))
+
+# Regression output table for reg4, reg5 and reg6, with standard errors included 
+stargazer(reg4,reg5,reg6, type="text",
+          se=list(se4,se5,se6), #with all their corresponding pre-defined standard errors which account for heteroskedastic errors.
+          dep.var.labels=c("Annual Earnings"), #Dependent variable name
+          covariate.labels=
+            c("Years of Experience Cubed",
+              "Years of Experience Squared",
+              "Years of Experience",
+              "Constant"), #Names/labels of coefficients
+          out="reg_output_exper.txt")   # Output results to your director in a text file
+
+# Obtain t-statistic on expercubic, experquad, and exper respectively 
+coeftest(reg4, vcov = vcovHC(reg4, "HC1")) #Assuming heteroskedasticity
+coeftest(reg5, vcov = vcovHC(reg5, "HC1")) 
+coeftest(reg6, vcov = vcovHC(reg6, "HC1")) 
