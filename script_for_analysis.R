@@ -126,3 +126,55 @@ stargazer(reg7, type = "text",
 linearHypothesis(reg7, 
                  c("schoolquad = 0", "experquad = 0"),
                  vcov = vcovHC(reg7, "HC1")) #Assuming heteroskedasticity
+
+# Computing the Partial Effects on Earnings
+# Construct dataframe for predicting earnings for school=12 and exper=5
+newdata1=data.frame(schoolquad=144,school=12,experquad=25,exper=5,rural=1,year=2025, trad=0, con=0, bus=0, fin=0)
+# Construct dataframe for predicting earnings for school=13 and exper=5
+newdata2=data.frame(schoolquad=169,school=13,experquad=25,exper=5,rural=1,year=2025, trad=0, con=0, bus=0, fin=0)
+# Construct dataframe for predicting earnings for school=12 and exper=6
+newdata3=data.frame(schoolquad=144,school=12,experquad=36,exper=6,rural=1,year=2025, trad=0, con=0, bus=0, fin=0)
+
+# Compute the predicted value for earnings for school=12 and exper=5 
+ahe1=predict(reg7, newdata=newdata1)
+# Compute the predicted value for earnings for school=13 and exper=5 
+ahe2=predict(reg7, newdata=newdata2)
+# Compute the predicted value for earnings for school=12 and exper=6 
+ahe3=predict(reg7, newdata=newdata3)
+
+# Compute partial effect on earnings changing from school=12 to school=13
+dahe_school = ahe2-ahe1
+# Compute partial effect on earnings changing from exper=5 to exper=6
+dahe_exper = ahe3-ahe1
+
+# F-statistic for joint-test that dahe_school=0
+Ftest_school=linearHypothesis(reg7,c("school+25*schoolquad=0"),vcov = vcovHC(reg7, "HC1"))
+Fstat_school=Ftest_school[2,3]
+
+# F-statistic for joint-test that dahe_exper=0
+Ftest_exper=linearHypothesis(reg7,c("exper+11*experquad=0"),vcov = vcovHC(reg7, "HC1"))
+Fstat_exper=Ftest_exper[2,3]
+
+# Compute standard errors of partial effects dahe_school and dahe_exper respectively
+se_dahe_school=abs(dahe_school)/sqrt(Fstat_school)
+se_dahe_exper=abs(dahe_exper)/sqrt(Fstat_exper)
+
+# 95% CI for partial effect dahe_school
+dahe_school_ci95L=dahe_school-se_dahe_school*1.96
+dahe_school_ci95H=dahe_school+se_dahe_school*1.96
+
+# 95% CI for partial effect dahe_exper
+dahe_exper_ci95L=dahe_exper-se_dahe_exper*1.96
+dahe_exper_ci95H=dahe_exper+se_dahe_exper*1.96
+
+# Output results for 1 more year of schooling
+sprintf("partial effect of an additional year of schooling: %f", dahe_school)
+sprintf("SE of partial effect of an additional year of schooling: %f", se_dahe_school)
+sprintf("95 CI lower bound for partial effect of additional year of schooling: %f", dahe_school_ci95L)
+sprintf("95 CI upper bound for partial effect of additional year of schooling: %f", dahe_school_ci95H)
+
+# Output results for 1 more year of work experience
+sprintf("partial effect of additional year of work experience: %f", dahe_exper)
+sprintf("SE of partial effect of additional year of work experience: %f", se_dahe_exper)
+sprintf("95 CI lower bound for partial effect of additional year of work experience: %f", dahe_exper_ci95L)
+sprintf("95 CI upper bound for partial effect of additional year of work experience: %f", dahe_exper_ci95H)
