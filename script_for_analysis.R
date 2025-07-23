@@ -32,3 +32,39 @@ ggplot(data=mydata, mapping = aes(x=exper, y=earnings) #scatter plot with earnin
   x="Workforce Experience (in Years)", #label for x-axis
   y="Earnings (in $1000s)") #label for y-axis
 dev.off()
+
+# Sequential Hypothesis Testing for Earnings-School
+# Create non-linear terms for polynomial regression
+mydata$schoolcubic = mydata$school * mydata$school * mydata$school
+mydata$schoolquad = mydata$school * mydata$school
+
+# Cubic earnings-school relationship
+reg1 = lm(earnings ~ schoolcubic + schoolquad + school, data=mydata)
+cov1=vcovHC(reg1, type = "HC1")  #Provides us with the heteroskedastic variance  
+se1=sqrt(diag(cov1)) #Provides us with the heteroskedastic standard errors
+
+# Quadratic earnings-school relationship
+reg2 = lm(earnings ~ schoolquad + school, data=mydata)
+cov2=vcovHC(reg2, type = "HC1")    
+se2=sqrt(diag(cov2))
+
+# Linear earnings-school relationship
+reg3 = lm(earnings ~ school, data=mydata)
+cov3=vcovHC(reg3, type = "HC1")    
+se3=sqrt(diag(cov3))
+
+# Regression output table for reg1, reg2 and reg3, with standard errors included 
+stargazer(reg1,reg2,reg3, type="text",
+          se=list(se1,se2,se3), #with all their corresponding pre-defined standard errors which account for heteroskedastic errors.
+          dep.var.labels=c("Annual Earnings"), # dependent variable name (i.e. Annual Earnings)
+          covariate.labels=
+            c("Years of Schooling Cubed",
+              "Years of Schooling Squared",
+              "Years of Schooling",
+              "Constant"), #Names/labels of the coefficients
+          out="reg_output_school.txt")   # Output results to your director in a text file
+
+# Obtain t-statistic on schoolcubic, schoolquad, and school respectively 
+coeftest(reg1, vcov = vcovHC(reg1, "HC1")) #Assuming heteroskedasticity
+coeftest(reg2, vcov = vcovHC(reg2, "HC1")) 
+coeftest(reg3, vcov = vcovHC(reg3, "HC1")) 
