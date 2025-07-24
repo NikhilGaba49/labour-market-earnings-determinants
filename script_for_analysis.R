@@ -178,3 +178,19 @@ sprintf("partial effect of additional year of work experience: %f", dahe_exper)
 sprintf("SE of partial effect of additional year of work experience: %f", se_dahe_exper)
 sprintf("95 CI lower bound for partial effect of additional year of work experience: %f", dahe_exper_ci95L)
 sprintf("95 CI upper bound for partial effect of additional year of work experience: %f", dahe_exper_ci95H)
+
+# Estimating a linear regression (not a non-linear one)
+#Run a linear regression for earnings-school relationship and earnings-exper relationship
+reg8 = lm(earnings ~ school + exper + rural + year + trad + con + bus + fin, data = mydata)
+cov8=vcovHC(reg8, type = "HC1")    
+se8=sqrt(diag(cov8))
+
+#Regression output table for reg8, inclusive of standard errors
+stargazer(reg8, type = "text", 
+          se = list(se8), 
+          dep.var.labels = c("Annual Earnings"), #Dependent variable name
+          covariate.labels = 
+            c("Years of Schooling", "Years of Experience",
+              "Rural", "Year", "Tradesperson", "Construction",
+              "Business", "Finance"), #Names/labels of coefficients
+          out = "reg_output_linear.txt")
