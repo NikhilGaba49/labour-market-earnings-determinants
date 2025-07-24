@@ -229,4 +229,36 @@ earn2=predict(reg9, newdata=newdata5)
 d_earn=earn2-earn1
 percentage_d_earn=d_earn*100
 percentage_d_earn # i.e. an increase in one year of schooling (from years 12 to 13) results in a 9.92% increase in earnings. 
-# Where we hold everything else constant. 
+# Where we hold everything else constant.
+
+# Effect of policy on earnings
+# Create dummy variable where 1 = 2022 onwards and 0 = otherwise
+mydata$post=as.numeric(mydata$year>=2022)
+# Regression of earnings on post from 2022 onwards
+reg10=lm(earnings ~ post, data=mydata[mydata$boom_twn==1,])
+cov10=vcovHC(reg10, type = "HC1")    
+se10=sqrt(diag(cov10))
+
+# Regression output for reg10, inclusive of standard errors
+stargazer(reg10, type = "text", 
+          se = list(se10), 
+          dep.var.labels = c("Earnings in $1000s"), #Dependent variable name
+          covariate.labels = 
+            c("Post", "Constant"), #Names/labels of coefficients
+          out = "reg_output_post_bmtn.txt")
+
+# Computing Difference-In-Differences
+# Create interaction term boom_twn_post 
+mydata$boom_twn_post=mydata$boom_twn * mydata$post
+# Regression of earnings on post and boom_twn inclusive of interaction term boom_twn_post
+reg11=lm(earnings ~ post + boom_twn + boom_twn_post, data=mydata)
+cov11=vcovHC(reg11, type = "HC1")    
+se11=sqrt(diag(cov11))
+
+# Regression output for reg10 and reg11 for comparison, inclusive of standard errors
+stargazer(reg10, reg11, type = "text", 
+          se = list(se10,se11), 
+          dep.var.labels = c("Earnings in $1000s"), #Dependent variable name
+          covariate.labels = 
+            c("Post","Boom Town", "Boom Town Times Post", "Constant"), #Names/labels of coefficients
+          out = "reg_output_post_bmtn_interaction.txt")
