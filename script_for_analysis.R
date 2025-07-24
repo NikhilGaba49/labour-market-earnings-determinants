@@ -180,12 +180,12 @@ sprintf("95 CI lower bound for partial effect of additional year of work experie
 sprintf("95 CI upper bound for partial effect of additional year of work experience: %f", dahe_exper_ci95H)
 
 # Estimating a linear regression (not a non-linear one)
-#Run a linear regression for earnings-school relationship and earnings-exper relationship
+# Run a linear regression for earnings-school relationship and earnings-exper relationship
 reg8 = lm(earnings ~ school + exper + rural + year + trad + con + bus + fin, data = mydata)
 cov8=vcovHC(reg8, type = "HC1")    
 se8=sqrt(diag(cov8))
 
-#Regression output table for reg8, inclusive of standard errors
+# Regression output table for reg8, inclusive of standard errors
 stargazer(reg8, type = "text", 
           se = list(se8), 
           dep.var.labels = c("Annual Earnings"), #Dependent variable name
@@ -194,3 +194,39 @@ stargazer(reg8, type = "text",
               "Rural", "Year", "Tradesperson", "Construction",
               "Business", "Finance"), #Names/labels of coefficients
           out = "reg_output_linear.txt")
+
+# Estimating a log-linear relationships
+# Create Logarithmic variable for earnings 
+mydata$log_earn = log(mydata$earnings)
+
+# Regression of log_earn on school and exper, holding rural, year and industry dummies fixed
+reg9 = lm(log_earn ~ schoolquad + school + experquad + exper + rural + year + trad + con + bus + fin, data = mydata)
+cov9=vcovHC(reg9, type = "HC1")    
+se9=sqrt(diag(cov9))
+#Obtain overall summary of reg9
+summary(reg9)
+
+#Regression output for reg9, inclusive of standard errors
+stargazer(reg9, type = "text", 
+          se = list(se9), 
+          dep.var.labels = c("Logarithm of Earnings"), #Dependent variable name
+          covariate.labels = 
+            c("Years of Schooling Squared", "Years of Schooling",
+              "Years of Experience Squared", "Years of Experience",
+              "Rural", "Year", "Tradesperson", "Construction", "Business", "Finance"), #Names/labels of coefficients
+          out = "reg_output_log_log.txt")
+
+#Construct dataframe for predicting log_earn for school=12
+newdata4=data.frame(schoolquad=144,school=12,experquad=25,exper=5,rural=1,year=2025, trad=0, con=0, bus=0, fin=0)
+#Construct dataframe for predicting log_earn for school=13
+newdata5=data.frame(schoolquad=13^2,school=13,experquad=25,exper=5,rural=1,year=2025, trad=0, con=0, bus=0, fin=0)
+
+#Compute predicted value of log_earn for school=12
+earn1=predict(reg9, newdata=newdata4)
+#Compute predicted value of log_earn for school=13
+earn2=predict(reg9, newdata=newdata5)
+# Compute partial effect on ahe from changing from school=12 to school=13
+d_earn=earn2-earn1
+percentage_d_earn=d_earn*100
+percentage_d_earn # i.e. an increase in one year of schooling (from years 12 to 13) results in a 9.92% increase in earnings. 
+# Where we hold everything else constant. 
