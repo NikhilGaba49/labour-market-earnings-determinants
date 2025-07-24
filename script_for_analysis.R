@@ -262,3 +262,39 @@ stargazer(reg10, reg11, type = "text",
           covariate.labels = 
             c("Post","Boom Town", "Boom Town Times Post", "Constant"), #Names/labels of coefficients
           out = "reg_output_post_bmtn_interaction.txt")
+
+# Comparing the effects of policy on earnings
+# Regression of earnings on year from before 2022
+reg12=lm(earnings ~ year, data=mydata[mydata$boom_twn==0,])
+cov12=vcovHC(reg12, type = "HC1")    
+se12=sqrt(diag(cov12))
+
+# Scatter plot with earnings as dependent variable and year as independent variable when boom_twn = 0
+pdf("earnings_year_bmtn0.pdf") 
+plot(mydata$year[mydata$boom_twn==0], mydata$earnings[mydata$boom_twn==0],
+     xlab="Year", #Label for x-axis
+     ylab="Earnings (in $1000s)", #Label for y-axis
+     main="Earnings over Time for Individuals not in a Boom Town") #Title for scatter plot
+abline(reg12,col="blue")
+dev.off()
+
+# Testing significance of wage and hours on changes in earnings
+# Regression of wage on post and boom_twn, inclusive of interaction term boom_twn_post
+reg13=lm(wage ~ post + boom_twn + boom_twn_post, data=mydata)
+cov13=vcovHC(reg13, type = "HC1")    
+se13=sqrt(diag(cov13))
+
+# Regression of hours on post and boom_twn, inclusive of interaction term boom_twn_post
+reg14=lm(hours ~ post + boom_twn + boom_twn_post, data=mydata)
+cov14=vcovHC(reg14, type = "HC1")    
+se14=sqrt(diag(cov14))
+
+# Regression output on reg13 and reg14, inclusive of standard errors
+stargazer(reg13, reg14, type = "text", 
+          se = list(se11), 
+          dep.var.labels = c("Earnings in $1000s"), #Dependent variable name
+          covariate.labels = 
+            c("Post","Boom Town", "Boom Town Times Post", "Constant"), #Names/labels of coefficients
+          out = "reg_output_post_bmtn_interaction_wage_hours.txt")
+
+rep(c(2,3,4),2)
